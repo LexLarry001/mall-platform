@@ -1,0 +1,60 @@
+# 开发环境中间件编排
+#   docker compose up -d            → 仅启动 redis + mongo（开发期默认）
+#   docker compose --profile deploy up -d   → 额外启动容器化 mysql（部署/联调用）
+# 说明：开发期 MySQL 使用本机实例（localhost:3306, root/123456），见 ledger 的 Setup Ruling。
+services:
+  redis:
+    image: redis:7
+    container_name: mall-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - mall-redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:6
+    container_name: mall-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mall-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mysql:
+    image: mysql:8.0
+    container_name: mall-mysql
+    profiles: ["deploy"]
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: mall
+    ports:
+      - "3306:3306"
+    volumes:
+      - mall-mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mall-redis-data:
+  mall-mongo-data:
+  mall-mysql-data:

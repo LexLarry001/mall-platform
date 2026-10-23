@@ -1,0 +1,38 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### VS Code ###
+.vscode/
+
+### Mac / Windows ###
+.DS_Store
+Thumbs.db
+
+### 日志与本地环境 ###
+*.log
+logs/
+
+### 上传文件（本地磁盘存储，运行时数据） ###
+uploads/
+
+### 本地密钥（支付宝沙箱、高德地图、DeepSeek 等，禁止入库） ###
+alipay-sandbox.env
+amap.env
+ai.env

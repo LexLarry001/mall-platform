@@ -1,0 +1,17 @@
+:root {
+  --el-color-primary: var(--wood-primary);
+  --el-color-primary-light-3: var(--wood-accent);
+  --el-color-primary-light-5: #d9c0a3;
+  --el-color-primary-light-7: #e8d9c6;
+  --el-color-primary-light-8: #efe4d6;
+  --el-color-primary-light-9: var(--wood-bg);
+  --el-color-primary-dark-2: var(--wood-primary-dark);
+  --el-text-color-primary: var(--wood-text);
+  --el-text-color-regular: var(--wood-text);
+  --el-border-color: var(--wood-border);
+  --el-border-color-light: var(--wood-border);
+  --el-bg-color: var(--wood-surface);
+  --el-fill-color-blank: var(--wood-surface);
+  --el-border-radius-base: 8px;
+  --el-font-family: 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+}

@@ -1,0 +1,44 @@
+# ===== 依赖与构建产物 =====
+**/node_modules/
+**/target/
+**/dist/
+**/.vite/
+**/.npm-cache/
+.npm-cache/
+*.log
+logs/
+
+# ===== 运行时上传文件（不公开） =====
+uploads/
+**/uploads/
+
+# ===== 内部资料（不公开） =====
+superpowers-main/
+.superpowers/
+e2e-web-tmp/
+docs/learn/
+docs/superpowers/
+!docs/learn/.gitkeep
+
+# ===== 本地密钥与环境变量（严禁入库） =====
+ai.env
+alipay-sandbox.env
+amap.env
+*.env
+.env
+**/.env
+**/.env.local
+**/*.local
+!**/.env.example
+
+# ===== IDE / 系统文件 =====
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ===== 根目录无关图片 =====
+/*.png
+/*.jpg
+/*.jpeg

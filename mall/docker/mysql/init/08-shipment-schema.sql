@@ -1,0 +1,25 @@
+-- M5 履约与物流：shipment 发货单（子订单级 1:1）
+CREATE TABLE IF NOT EXISTS `shipment` (
+  `id` BIGINT NOT NULL COMMENT '雪花 ID',
+  `shipment_no` VARCHAR(32) NOT NULL COMMENT '发货单号（SH+雪花）',
+  `sub_order_id` BIGINT NOT NULL COMMENT '子订单 ID（唯一，1:1 发货）',
+  `sub_order_no` VARCHAR(32) NOT NULL COMMENT '子订单号（冗余方便查）',
+  `provider` VARCHAR(16) NOT NULL DEFAULT 'manual' COMMENT '物流提供商：manual | amap（预留）',
+  `carrier_code` VARCHAR(32) NOT NULL COMMENT '承运商编码：YTO/ZTO/STO/YUNDA/EMS 等',
+  `carrier_name` VARCHAR(32) NOT NULL COMMENT '承运商展示名：圆通/中通/申通/韵达/EMS',
+  `tracking_no` VARCHAR(64) NOT NULL COMMENT '运单号',
+  `from_address` VARCHAR(255) NULL COMMENT '发货地址（M7 商家填写，高德地理编码源）',
+  `to_address` VARCHAR(500) NULL COMMENT '收货地址（M7 主订单快照，高德地理编码源）',
+  `current_status` VARCHAR(16) NOT NULL DEFAULT 'SHIPPED' COMMENT '当前物流状态：SHIPPED/IN_TRANSIT/OUT_FOR_DELIVERY/DELIVERED/EXCEPTION',
+  `trace_count` INT NOT NULL DEFAULT 1 COMMENT '轨迹节点数（缓存）',
+  `from_lng` DECIMAL(10,6) NULL COMMENT '发货地经度（M7 高德地理编码）',
+  `from_lat` DECIMAL(10,6) NULL COMMENT '发货地纬度（M7）',
+  `to_lng` DECIMAL(10,6) NULL COMMENT '收货地经度（M7）',
+  `to_lat` DECIMAL(10,6) NULL COMMENT '收货地纬度（M7）',
+  `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_shipment_no` (`shipment_no`),
+  UNIQUE KEY `uk_sub_order` (`sub_order_id`),
+  KEY `idx_sub_order_no` (`sub_order_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='发货单（子订单级 1:1，物流提供商可插拔）';

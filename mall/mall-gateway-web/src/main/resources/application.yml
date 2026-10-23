@@ -1,0 +1,109 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mall
+  servlet:
+    multipart:
+      # 与 FileService.MAX_SIZE 对齐：超出即拒绝（经全局异常处理返回 400）
+      max-file-size: 5MB
+      max-request-size: 5MB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: "123456"
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 3000ms
+    mongodb:
+      uri: mongodb://localhost:27017/mall
+      # M2 商品域首次启用 MongoDB：开启后 @Indexed 注解（如 product_detail.spu_id 唯一索引）才会自动建索引
+      auto-index-creation: true
+
+mall:
+  file:
+    # 上传根目录（相对路径基于应用工作目录）；FileService 写入、WebMvcConfig 映射 /static/**
+    upload-dir: uploads
+  jwt:
+    # 密钥从环境变量 MALL_JWT_SECRET 注入；冒号后为本地开发默认值（jjwt 按密钥长度选算法，默认值 64 字节 → HS512），生产环境必须设置该变量
+    secret: ${MALL_JWT_SECRET:mall-dev-secret-key-please-change-in-production-0123456789abcdef}
+    access-expire-hours: 12
+    refresh-expire-days: 7
+  captcha:
+    expire-minutes: 5
+    # 验证码总开关：开发期可置 false（集成测试不再每次读 Redis 取码），生产必须 true
+    enabled: false
+  order:
+    # 待支付订单超时关单时长（分钟），OrderTimeoutJob 扫描 ZSet 到期的依据
+    pay-timeout-minutes: 30
+  alipay:
+    # 支付宝沙箱网关（新沙箱域名）；生产环境改为 https://openapi.alipay.com/gateway.do
+    gateway: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+    # 沙箱四要素走环境变量注入，仓库不落真实密钥；缺省为空串（仅真实调用会失败，不影响装配与测试）
+    app-id: ${MALL_ALIPAY_APP_ID:}
+    private-key: ${MALL_ALIPAY_PRIVATE_KEY:}
+    alipay-public-key: ${MALL_ALIPAY_PUBLIC_KEY:}
+    # 异步回调地址（需公网可达，本地联调用内网穿透；见 docs/api/m4-payment-api.md）
+    notify-url: ${MALL_ALIPAY_NOTIFY_URL:}
+    # 同步跳转地址（默认指 buyer-web 支付结果页；沙箱支持 localhost）
+    return-url: ${MALL_ALIPAY_RETURN_URL:http://localhost:5173/pay/result}
+  logistics:
+    # 物流提供商：manual 手动 / amap 高德（M7）；业务代码只依赖 LogisticsProvider 接口
+    provider: ${MALL_LOGISTICS_PROVIDER:manual}
+    amap:
+      # Web 服务 Key（地理编码 + 驾车路径规划），走环境变量注入，仓库不落密钥
+      key: ${MALL_AMAP_WEB_KEY:}
+      base-url: ${MALL_AMAP_BASE_URL:https://restapi.amap.com/v3}
+      # 高德调用超时；失败/超时按"路线不可用"降级，不阻断发货
+      timeout-ms: ${MALL_AMAP_TIMEOUT_MS:3000}
+  ai:
+    # M8/M9 AI 能力总开关：false 时整个 AI 链路走空实现，业务零影响
+    enabled: ${MALL_AI_ENABLED:false}
+    # chat provider：mock（本地）/ openai-compat（百炼/DeepSeek/豆包等 OpenAI 兼容协议）
+    provider: ${MALL_AI_PROVIDER:mock}
+    base-url: ${MALL_AI_BASE_URL:https://api.deepseek.com}
+    # chat 端点 API Key 走环境变量，绝不入库
+    api-key: ${MALL_AI_API_KEY:}
+    chat-model: ${MALL_AI_CHAT_MODEL:deepseek-chat}
+    # DeepSeek 生成 1500 tokens 通常需要 10~30 秒，超时留足余量，避免必降级
+    timeout-ms: ${MALL_AI_TIMEOUT_MS:30000}
+    max-retries: 1
+    # 向量模型独立接入：DeepSeek 无 /embeddings，语义搜索走百炼 DashScope 兼容模式。
+    # 未配置 api-key 时自动复用 chat provider（mock 仍可离线出向量）。
+    embedding:
+      enabled: ${MALL_EMBED_ENABLED:true}
+      provider: ${MALL_EMBED_PROVIDER:bailian}
+      base-url: ${MALL_EMBED_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+      api-key: ${MALL_EMBED_API_KEY:}
+      model: ${MALL_EMBED_MODEL:text-embedding-v3}
+      dim: ${MALL_EMBED_DIM:1024}
+      timeout-ms: ${MALL_EMBED_TIMEOUT_MS:10000}
+    search:
+      # keyword / hybrid / auto
+      mode: ${MALL_AI_SEARCH_MODE:keyword}
+      keyword-top-k: 200
+      vector-top-k: 50
+      rrf-k: 60
+  # M10 评价体系与 AI 评价推荐
+  review:
+    summary-min-count: ${MALL_REVIEW_SUMMARY_MIN_COUNT:3}
+    summary-max-reviews: ${MALL_REVIEW_SUMMARY_MAX_REVIEWS:30}
+    summary-cache-ttl-minutes: ${MALL_REVIEW_SUMMARY_CACHE_MINUTES:10080}
+    recommend-candidates: ${MALL_REVIEW_RECOMMEND_CANDIDATES:12}
+    reviews-per-product: ${MALL_REVIEW_REVIEWS_PER_PRODUCT:3}
+    recommend-cache-ttl-minutes: ${MALL_REVIEW_RECOMMEND_CACHE_MINUTES:30}
+    daily-call-limit: ${MALL_REVIEW_DAILY_CALL_LIMIT:500}
+    user-daily-limit: ${MALL_REVIEW_USER_DAILY_LIMIT:50}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    com.mall: info
